@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/TICESoftware/eudi-lib-ios-presentation-exchange-swift.git",
       "state" : {
-        "revision" : "2749b8b51637b56a8403b16c016448ae10921373",
-        "version" : "0.0.44"
+        "branch" : "main",
+        "revision" : "dbd242057609ef67d1214fd79d34b352020344b0"
       }
     },
     {
