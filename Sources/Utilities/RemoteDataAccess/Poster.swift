@@ -112,10 +112,19 @@ public struct Poster: Posting {
 
       let string = String(data: data, encoding: .utf8)
       let dictionary = string?.toDictionary() ?? [:]
-      let value = dictionary[key] as? String ?? ""
-      let success = (response as? HTTPURLResponse)?.statusCode.isWithinRange(200...299) ?? false
-      
-      return .success((value, success))
+      let value = dictionary[key] as? String
+      if value == nil {
+        print("Key not found \(key)")
+      }
+      guard let httpResponse = response as? HTTPURLResponse else {
+        print("Invalid response for request \(request)")
+        return .success((value ?? "", false))
+      }
+      guard httpResponse.statusCode.isWithinRange(200...299) else {
+        print("Error: statusCode \(httpResponse.statusCode) for request \(request)")
+        return .success((value ?? "", false))
+      }
+      return .success((value ?? "", true))
     } catch let error as NSError {
       if error.domain == NSURLErrorDomain {
         return .failure(.networkError(error))
