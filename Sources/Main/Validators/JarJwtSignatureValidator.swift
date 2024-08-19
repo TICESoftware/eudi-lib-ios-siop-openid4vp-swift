@@ -43,16 +43,20 @@ public actor JarJwtSignatureValidator {
     }
     let claimSet = dictionary
     
-    guard let clientId = clientId else {
-      throw ValidatedAuthorizationError.missingRequiredField("client_id")
-    }
-    
+//    TODO: Some RPs are not including their client_id here. Should be there, but here we are \o/
+//    guard let clientId = clientId else {
+//      throw
+//      ValidatedAuthorizationError.missingRequiredField("client_id")
+//    }
+      
     guard let jwtClientId = claimSet["client_id"] as? String else {
       throw ValidatedAuthorizationError.invalidClientId
     }
-    
-    guard clientId == jwtClientId else {
-      throw ValidatedAuthorizationError.clientIdMismatch(clientId, jwtClientId)
+
+    if let clientId {
+      guard clientId == jwtClientId else {
+        throw ValidatedAuthorizationError.clientIdMismatch(clientId, jwtClientId)
+      }
     }
     
     guard let scheme = claimSet["client_id_scheme"] as? String else {
@@ -68,14 +72,14 @@ public actor JarJwtSignatureValidator {
       let supported: SupportedClientIdScheme? = walletOpenId4VPConfig?.supportedClientIdSchemes.first(where: { $0.scheme == clientIdScheme })
       try await validatePreregistered(
         supportedClientIdScheme: supported,
-        clientId: clientId,
+        clientId: jwtClientId,
         jws: jws
       )
     case .x509SanUri:
       let supported: SupportedClientIdScheme? = walletOpenId4VPConfig?.supportedClientIdSchemes.first(where: { $0.scheme == clientIdScheme })
       try await validateX509(
         supportedClientIdScheme: supported,
-        clientId: clientId,
+        clientId: jwtClientId,
         jws: jws,
         alternativeNames: { certificate in
           let alternativeNames = try? certificate
@@ -89,7 +93,7 @@ public actor JarJwtSignatureValidator {
       let supported: SupportedClientIdScheme? = walletOpenId4VPConfig?.supportedClientIdSchemes.first(where: { $0.scheme == clientIdScheme })
       try await validateX509(
         supportedClientIdScheme: supported,
-        clientId: clientId,
+        clientId: jwtClientId,
         jws: jws,
         alternativeNames: { certificate in
           let alternativeNames = try? certificate
@@ -115,7 +119,7 @@ public actor JarJwtSignatureValidator {
       throw ValidatedAuthorizationError.validationError("x5c header field does not contain a serialized leaf certificate")
     }
     
-    let certificates: [Certificate] = parseCertificates(from: chain)
+    let certificates: [Certificate] = try parseCertificates(from: chain)
 
     guard !certificates.isEmpty else {
       throw ValidatedAuthorizationError.validationError("x5c header field does not contain a serialized leaf certificate")

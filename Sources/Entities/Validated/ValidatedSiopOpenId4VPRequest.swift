@@ -287,18 +287,19 @@ public extension ValidatedSiopOpenId4VPRequest {
         throw ValidatedAuthorizationError.validationError("Unable to process JWT")
       }
 
-      guard let chain: [String] = jws.header.x5c else {
-        throw ValidatedAuthorizationError.validationError("No certificate in header")
-      }
-
-      let certificates: [Certificate] = parseCertificates(from: chain)
-      guard let certificate = certificates.first else {
-        throw ValidatedAuthorizationError.validationError("No certificate in chain")
-      }
+//      TODO: Add again
+//      guard let chain: [String] = jws.header.x5c else {
+//        throw ValidatedAuthorizationError.validationError("No certificate in header")
+//      }
+//
+//      let certificates: [Certificate] = try parseCertificates(from: chain)
+//      guard let certificate = certificates.first else {
+//        throw ValidatedAuthorizationError.validationError("No certificate in chain")
+//      }
 
       return .x509SanUri(
         clientId: clientId,
-        certificate: certificate
+        certificate: nil
       )
         
     case .did(let keyLookup):

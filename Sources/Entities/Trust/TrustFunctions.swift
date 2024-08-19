@@ -16,21 +16,21 @@
 import Foundation
 import X509
 
-func parseCertificates(from chain: [String]) -> [Certificate] {
-  chain.compactMap { serializedCertificate in
+func parseCertificates(from chain: [String]) throws -> [Certificate] {
+  try chain.map { serializedCertificate in
     guard let serializedData = Data(base64Encoded: serializedCertificate) else {
-      return nil
+      throw ValidatedAuthorizationError.invalidFormat
     }
-
+    
     if let string = String(data: serializedData, encoding: .utf8) {
       guard let data = Data(base64Encoded: string.removeCertificateDelimiters()) else {
-        return nil
+        throw ValidatedAuthorizationError.invalidFormat
       }
       let derBytes = [UInt8](data)
-        return try? Certificate(derEncoded: derBytes)
-      } else {
-        let derBytes = [UInt8](serializedData)
-        return try? Certificate(derEncoded: derBytes)
-      }
+      return try Certificate(derEncoded: derBytes)
+    } else {
+      let derBytes = [UInt8](serializedData)
+      return try Certificate(derEncoded: derBytes)
     }
+  }
 }

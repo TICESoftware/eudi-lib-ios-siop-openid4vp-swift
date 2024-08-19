@@ -61,6 +61,11 @@ public actor AuthorisationService: AuthorisationServiceType {
         dictionary: try? data.toDictionary()
       )
       
+      var url = url
+      if url.scheme == nil {
+        url = URL(string: "https://" + url.absoluteString)!
+      }
+      
       let post = VerifierFormPost(
         additionalHeaders: ["Content-Type": ContentType.form.rawValue],
         url: url,

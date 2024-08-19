@@ -25,11 +25,11 @@ public enum Client {
   case redirectUri(clientId: URL)
   case x509SanDns(
     clientId: String,
-    certificate: Certificate
+    certificate: Certificate?
   )
   case x509SanUri(
     clientId: String,
-    certificate: Certificate
+    certificate: Certificate?
   )
 
   case didClient(
@@ -67,9 +67,9 @@ public enum Client {
     case .redirectUri:
       return nil
     case .x509SanDns(_, let certificate):
-      return certificate.legaName
+      return certificate?.legaName ?? "N/A"
     case .x509SanUri(_, let certificate):
-      return certificate.legaName
+      return certificate?.legaName ?? "N/A"
     case .didClient:
       return nil
     case .attested:

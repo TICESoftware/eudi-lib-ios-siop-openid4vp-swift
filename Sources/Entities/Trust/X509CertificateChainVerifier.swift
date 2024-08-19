@@ -171,10 +171,13 @@ private extension X509CertificateChainVerifier {
   func convertStringsToData(base64Strings: [String]) throws -> [Data] {
     var dataObjects: [Data] = []
     for base64String in base64Strings {
-      if let data = Data(base64Encoded: base64String),
-         let string = String(data: data, encoding: .utf8)?.removeCertificateDelimiters(),
-         let encodedData = Data(base64Encoded: string) {
-        dataObjects.append(encodedData)
+      if let data = Data(base64Encoded: base64String) {
+        if let string = String(data: data, encoding: .utf8)?.removeCertificateDelimiters(),
+           let encodedData = Data(base64Encoded: string) {
+          dataObjects.append(encodedData)
+        } else {
+          dataObjects.append(data)
+        }
       } else {
         throw DataConversionError.conversionFailed("Failed to convert base64 string: \(base64String)")
       }

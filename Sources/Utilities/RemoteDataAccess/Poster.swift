@@ -17,6 +17,11 @@ import Foundation
 
 public enum PostError: Error {
   case invalidUrl
+  case invalidURLResponse
+  case invalidResponse(String)
+  case unexpectedEmptyAnswer
+  case invalidStatusCode(Int, String?)
+  case keyNotPresent(String)
   case networkError(Error)
 
   /**
@@ -30,6 +35,16 @@ public enum PostError: Error {
       return "Invalid URL"
     case .networkError(let error):
       return "Network Error: \(error.localizedDescription)"
+    case .invalidResponse(let body):
+      return "Invalid response: \(body)"
+    case .invalidURLResponse:
+      return "Invalid url response"
+    case .unexpectedEmptyAnswer:
+      return "Unexpected empty answer"
+    case .keyNotPresent(let body):
+      return "Key not present in body: \(body)"
+    case .invalidStatusCode(let statusCode, let body):
+      return "Invalid status code \(statusCode) with body: \(body)"
     }
   }
 }
@@ -110,12 +125,24 @@ public struct Poster: Posting {
 
       let (data, response) = try await self.session.data(for: request)
 
+      guard let httpResponse = response as? HTTPURLResponse else {
+        throw PostError.invalidURLResponse
+      }
       let string = String(data: data, encoding: .utf8)
-      let dictionary = string?.toDictionary() ?? [:]
-      let value = dictionary[key] as? String ?? ""
-      let success = (response as? HTTPURLResponse)?.statusCode.isWithinRange(200...299) ?? false
+      guard httpResponse.statusCode.isWithinRange(200...299) else {
+        throw PostError.invalidStatusCode(httpResponse.statusCode, string)
+      }
+      guard let string else {
+        throw PostError.unexpectedEmptyAnswer
+      }
+      guard let dictionary = string.toDictionary() else {
+        throw PostError.invalidResponse(string)
+      }
+      guard let value = dictionary[key] as? String else {
+        throw PostError.keyNotPresent(string)
+      }
       
-      return .success((value, success))
+      return .success((value, true))
     } catch let error as NSError {
       if error.domain == NSURLErrorDomain {
         return .failure(.networkError(error))
