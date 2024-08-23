@@ -110,10 +110,10 @@ private extension AuthorisationService {
   ) -> [String: Any] {
     
     guard let dictionary = dictionary else { return [:] }
-    
     let value = dictionary[key] as? [String: Any]
-    let presentationSubmission: String? = value?.toJSONString() ?? ""
-    
+    let allowedCharacterSet = CharacterSet(charactersIn: "!*'();:@&=+$,/?%#[]").inverted
+    var presentationSubmission: String? = value?.toJSONString()?.addingPercentEncoding(withAllowedCharacters: allowedCharacterSet) ?? ""
+                                                                            
     return dictionary
       .filter { $0.key != Constants.presentationSubmissionKey }
       .merging([Constants.presentationSubmissionKey: presentationSubmission as Any], uniquingKeysWith: { _, new in new })
